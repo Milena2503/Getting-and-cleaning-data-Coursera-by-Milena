@@ -1,0 +1,96 @@
+---
+title: "Codebook: Getting and cleaning data, Peer-graded assignment"
+output: html_notebook
+---
+# Assignment by Milena
+
+# 
+
+In order to create the final tidy data set as required in the assignment, I had 
+to first install a package called "dplyr" because it provides some tools for 
+better handling datasets in R.
+
+When I downloaded the dataset, I saw that there were couple of files that should be further extracted and merged as described in the assignment: 
+1. features.txt (accelerometer and gyroscope signals data)
+2. activity_labels.text (list of activities and codes)
+3. subject_test.txt (volunteers test data)
+4. X_test.txt (recorded features test data)
+5. Y_test.txt (test data of activities code)
+6. subject_train.txt (train data)
+7. X_train.txt (recorded features train data)
+8. Y_train.txt (train data of activites code)
+
+# 1.step 
+The first step of this assignment is to merge both the training and the test 
+datasets and then to create one merged file. I used the functions rbind and cbind
+to perform this action 
+```{r}
+Xtrainandtest <- rbind(x_train, x_test)
+Ytrainandtest <- rbind(y_train, y_test)
+Subjecttraintest <- rbind(subject_train, subject_test)
+Merging_Data <- cbind(Subjecttraintest, Ytrainandtest, Xtrainandtest)
+```
+I got 4 new merged files 
+- Xtrainandtest (10299rows, 561 columns)
+- Ytrainandtest (10299rows, 1 column)
+- Subjecttraintest (10299rows, 1 column)
+- Merging_Data (10299rows, 563 columns)
+
+# 2.step
+The second step of the assignment is to extract only the measurements on the mean and standard deviation for each measurement.
+
+```{r}
+TidyData <- Merging_Data %>% select(subject, code, contains("mean"), contains("std"))
+```
+
+In fact, it is done by subsetting the Merging_Data and selecting only certain columns: "subject", "code", measurements of the mean "mean" and measurements of the standard deviation "std".
+
+# 3.step
+The third step of the assignment is to use descriptive names to name the activities in the data set:
+
+```{r}
+TidyData$code <- activities[TidyData$code, 2]
+```
+
+
+
+# 4. step
+The fourth step of the assignment is to label appropriately the data set 
+with descriptive variable names. It means that  numbers in the 
+column "code" have to be replaced with appropriate values from the "activity" second column:
+
+```{r}
+names(TidyData)[2] = "activity"
+names(TidyData)<-gsub("Acc", "Accelerometer", names(TidyData))
+names(TidyData)<-gsub("Gyro", "Gyroscope", names(TidyData))
+names(TidyData)<-gsub("BodyBody", "Body", names(TidyData))
+names(TidyData)<-gsub("Mag", "Magnitude", names(TidyData))
+names(TidyData)<-gsub("^t", "Time", names(TidyData))
+names(TidyData)<-gsub("^f", "Frequency", names(TidyData))
+names(TidyData)<-gsub("tBody", "TimeBody", names(TidyData))
+names(TidyData)<-gsub("-mean()", "Mean", names(TidyData), ignore.case = TRUE)
+names(TidyData)<-gsub("-std()", "STD", names(TidyData), ignore.case = TRUE)
+names(TidyData)<-gsub("-freq()", "Frequency", names(TidyData), ignore.case = TRUE)
+names(TidyData)<-gsub("angle", "Angle", names(TidyData))
+names(TidyData)<-gsub("gravity", "Gravity", names(TidyData))
+```
+
+
+
+
+# 5.step
+The fifth step of the assignment is to use the data set from step 4 to create 
+a second, new independent tidy data set with the average of each variable for each activity and each subject:
+
+```{r}
+NewTidyData <- TidyData %>%
+  group_by(subject, activity) %>%
+  summarise_all(funs(mean))
+write.table(NewTidyData, "NewTidyData.txt", row.name=FALSE)
+```
+
+Finally,  I exported the tidy data set into NewTidyData.txt file/
+
+
+
+
