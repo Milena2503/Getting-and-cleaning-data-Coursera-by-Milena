@@ -58,4 +58,3 @@ FinalData <- TidyData %>%
 write.table(FinalData, "FinalData.txt", row.name=FALSE)
 
 
-#we can check this by using str(FinalData)
